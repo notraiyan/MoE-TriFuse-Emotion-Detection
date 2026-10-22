@@ -1,17 +1,30 @@
-#!/bin/bash
+#!/bin/bash --login
 # One-time setup on Roihu: a virtual environment on top of CSC's PyTorch module, with the extra packages the
-# notebook needs and a Jupyter kernel (meld-venv) for the batch job. Run it on the GPU login node, which has
-# the same ARM architecture as the GPU nodes:
+# notebook needs and a Jupyter kernel (meld-venv) for the batch job. It has to be built on the GPU nodes' ARM
+# (aarch64) architecture, so submit it as a short job; this works from any login node, including the shell of the
+# web interface (www.roihu.csc.fi):
 #
-#   ssh <user>@roihu-gpu.csc.fi
 #   cd <folder with meld-dataset.ipynb and roihu/>
-#   bash roihu/setup_env.sh project_2001234
-PROJECT=${1:?usage: bash roihu/setup_env.sh <project, e.g. project_2001234>}
+#   sbatch --account=project_2001234 roihu/setup_env.sh project_2001234      # output: setup-<jobid>.out
+#
+# On roihu-gpu.csc.fi itself, `bash roihu/setup_env.sh project_2001234` works too.
+#SBATCH --job-name=meld-setup
+#SBATCH --partition=gputest
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=72
+#SBATCH --mem=217086
+#SBATCH --gres=gpu:gh200:1
+#SBATCH --time=00:15:00
+#SBATCH --output=setup-%j.out
+#SBATCH --export=HOME,CSC_ENV_INIT_NON_INTERACTIVE=yes
+PROJECT=${1:?usage: sbatch --account=<project> roihu/setup_env.sh <project, e.g. project_2001234>}
+USER=${USER:-$(id -un)}
 if [ "$(uname -m)" != aarch64 ]; then
-    echo "run this on roihu-gpu.csc.fi (aarch64), not on $(hostname) ($(uname -m))"
+    echo "run this as a job (sbatch, see above) or on roihu-gpu.csc.fi; $(hostname) is $(uname -m), not aarch64"
     exit 1
 fi
-VENV=/projappl/${PROJECT}/${USER}/meld-venv
+VENV=/scratch/${PROJECT}/${USER}/meld-venv
 
 module purge
 module load python-pytorch/2.13
