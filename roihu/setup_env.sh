@@ -33,7 +33,7 @@ python3 -m venv --system-site-packages "$VENV"
 source "$VENV/bin/activate"
 # opencv < 5: the notebook's YuNet / Haar face detection was written against OpenCV 4
 pip install --no-cache-dir "transformers>=4.56" "peft>=0.13" "opencv-python-headless<5" imageio-ffmpeg ftfy \
-    scikit-learn pandas matplotlib papermill ipykernel
+    scikit-learn pandas matplotlib papermill ipykernel timm python_speech_features scipy
 python -m ipykernel install --prefix "$VENV" --name meld-venv --display-name "MELD (venv)"
 python -c "
 import torch, transformers, peft, cv2, imageio_ffmpeg
